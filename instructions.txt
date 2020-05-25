@@ -1,0 +1,11 @@
+To do:
+Generate 500 (5*5*5*4) number of particles either using fcc bcc etc as the starting point
+Set size of unit cell a=5.3 A 
+sigma = 3.4 A 
+Epsilon = 1KJ/mol
+Start MC simulation 
+Generate n'=n*2-1
+Calculate potential for every change for all particles less than 3 sigma from it
+Based on change in potential calculate the probability  (To accept or reject)
+Set alpha value such that acceptance rate is around 50%
+Calculate energy for each state -> To calculate average energy and plot it to get mean value -> which will be the convergent value of the system 
