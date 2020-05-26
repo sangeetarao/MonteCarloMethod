@@ -3,22 +3,14 @@ import math
 from operator import add 
 from functools import reduce
 import matplotlib.pyplot as plt 
-#Defining constants 
-a=5.3*(10**-10)
-sigma=3.4*(10**-10)
-epsilon=10*(10**3)
-alpha=0.2
-# Kb=1.38*(10**(−10))
-Kb=1.3*(10**-23)
-T=5
-e=2.71828
+
 #Generating N=500 data using fcc base
 def create_N_particles( n ):
-    x=(n/4)**(1/3)
+    x=int((n/4)**(1/3))
     particle_position=[]
-    for i in range(0,5):
-        for j in range(0,5):
-            for k in range (0,5):
+    for i in range(0,x):
+        for j in range(0,x):
+            for k in range (0,x):
                 particle_position.append([0+i,0+j,0+k])
                 particle_position.append([0.5+i,0.5+j,0+k])
                 particle_position.append([0.5+i,0+j,0.5+k])
@@ -50,32 +42,43 @@ def r_prime_calc(r):
     r_prime=list(map(add, r, random_nums))
     return r_prime
 
-
+#Defining constants and initializing 
+a=5.3*(10**-10)
+sigma=3.4*(10**-10)
+epsilon=10*(10**3)
+alpha=0.0000000000001
+Kb=1.3*(10**-23)
+T=5
+e=2.71828
+mc_num=100
 particle_position=create_N_particles(500)
-change=[]
 energy_original=[]
 average_original=[]
 energy_prime=[]
+average_prime=[]
 acceptance=[]
-x=[]
-y=[]
+
 #MC Method
 for ri in particle_position:
+    energy_original=[]
     for j in particle_position:
         if ri!=j:
             rij=calculate_distance(ri,j)
             if rij<(3*sigma):
                 energy_original.append(calc_energy(rij))
+            # energy_original.append(calc_energy(rij)) #without sigma condition
     Ui=average_energy(energy_original)
     average_original.append(Ui)
-    for imc in (0,1):
+    #Generating ri_prime's for each ri
+    for imc in range(0,mc_num):
         ri_prime=r_prime_calc(ri)
-        # for j in particle_position and j!=ri:
+        energy_prime=[]
         for j in particle_position:
                 if j!=ri:
                     rij_prime=calculate_distance(ri_prime,j)
                     if rij_prime<(3*sigma):
                         energy_prime.append(calc_energy(rij_prime))
+                    # energy_prime.append(calc_energy(rij_prime)) #without sigma condition
         Ui_prime=average_energy(energy_prime)
         average_prime.append(Ui_prime)
         if Ui_prime<Ui:
@@ -88,49 +91,11 @@ for ri in particle_position:
                 acceptance.append(1)
             else:
                 acceptance.append(0)
-    print(acceptance)
-    break
-
-            
-
-
-
-    # for i in range(0,1):
-    #     r_prime=r_prime_calc(r)
-    #     for j in particle_position:
-    #         if j!=r:
-    #             rij=calculate_distance(r,j)
-    #             rij_prime=calculate_distance(r_prime,j)
-    #             # print(rij_prime,rij)
-    #             if float(rij)<(3*sigma):
-    #                 phi_rij=calc_energy(rij)
-    #                 x.append(rij)
-    #                 y.append(phi_rij)
-    #                 energy_original.append(phi_rij)
-    #             # if float(rij_prime)<(3*sigma): #Bug -> must be there actually 
-    #             phi_rij_prime=calc_energy(rij_prime)
-    #             energy_prime.append(phi_rij_prime)
-            
-
-    #             if phi_rij>phi_rij_prime:
-    #                 acceptance.append(1)
-    #             else:
-    #                 delta=phi_rij_prime-phi_rij
-    #                 P = e**(-delta/(Kb*T))
-    #                 G = random.random()
-    #                 if G<P:
-    #                     acceptance.append(1)
-    #                 else:
-    #                     acceptance.append(0) 
-                    
-    #     avg_original=average_energy(energy_original)
-    #     avg_prime=average_energy(energy_prime)
-    #     change.append([r,r_prime,avg_original,avg_prime])
-# print(len(average_original))
-# probability=0
-# for i in acceptance:
-#     if i==1:
-#         probability=probability+1
-# probability=probability/len(acceptance)
-# print("The probability of acceptance is:",probability,"%")
+probability=0
+for i in acceptance:
+    if i==1:
+        probability=probability+1
+probability=probability/len(acceptance)
+print("The probability of acceptance is:",probability*100,"%")
+# print("Energy of the system wrt to each ri", average_original)
 
