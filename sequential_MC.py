@@ -31,9 +31,6 @@ def calc_energy(r):
     phi_rij=4*epsilon*(((sigma/r)**12)-((sigma/r)**6))
     return phi_rij
 
-def average_energy(lst): 
-    return reduce(lambda a, b: a + b, lst) / len(lst) 
-
 def r_prime_calc(r):
     n1=((random.random()*2)-1)*alpha
     n2=((random.random()*2)-1)*alpha
@@ -41,61 +38,96 @@ def r_prime_calc(r):
     random_nums=[n1,n2,n3]
     r_prime=list(map(add, r, random_nums))
     return r_prime
+def calc_acceptance(lst):
+	acceptance_rate=sum(lst)/len(lst)
+	return acceptance_rate
+
+
+
 
 #Defining constants and initializing 
 a=5.3*(10**-10)
 sigma=3.4*(10**-10)
-epsilon=10*(10**3)
-alpha=0.0000000000001
-Kb=1.3*(10**-23)
-T=5
-e=2.71828
-mc_num=100
+epsilon=10**3
+alpha=0.3*(10**-10) #should be around 0.3 A
+R=8.3145
+T=100
+e=2.718281828
 particle_position=create_N_particles(500)
 energy_original=[]
-average_original=[]
-energy_prime=[]
-average_prime=[]
 acceptance=[]
-
-#MC Method
-for ri in particle_position:
+Ui=[]
+configurations=[]
+mc_cycle=100
+#MC METHOD
+test=particle_position.copy()
+#Energy of system for base configuration
+for ri in test:
     energy_original=[]
-    for j in particle_position:
+    for j in test:
         if ri!=j:
             rij=calculate_distance(ri,j)
             if rij<(3*sigma):
                 energy_original.append(calc_energy(rij))
-            # energy_original.append(calc_energy(rij)) #without sigma condition
-    Ui=average_energy(energy_original)
-    average_original.append(Ui)
-    #Generating ri_prime's for each ri
-    for imc in range(0,mc_num):
-        ri_prime=r_prime_calc(ri)
-        energy_prime=[]
-        for j in particle_position:
-                if j!=ri:
-                    rij_prime=calculate_distance(ri_prime,j)
-                    if rij_prime<(3*sigma):
-                        energy_prime.append(calc_energy(rij_prime))
-                    # energy_prime.append(calc_energy(rij_prime)) #without sigma condition
-        Ui_prime=average_energy(energy_prime)
-        average_prime.append(Ui_prime)
-        if Ui_prime<Ui:
-            acceptance.append(1)
-        else:
-            delta=Ui_prime-Ui
-            P = e**(-delta/(Kb*T))
-            G = random.random()
-            if G<P:
-                acceptance.append(1)
-            else:
-                acceptance.append(0)
-probability=0
-for i in acceptance:
-    if i==1:
-        probability=probability+1
-probability=probability/len(acceptance)
-print("The probability of acceptance is:",probability*100,"%")
-# print("Energy of the system wrt to each ri", average_original)
+    Ui.append(sum(energy_original))
+U=sum(Ui)/500
+U_run=U
+print("Energy of base configuration is: ", U ,"J/mol")
+
+eng_og=[]
+eng_prime=[]
+check=0
+#Starting MC Cycles
+for imc in range(0,mc_cycle):
+	for ri in test:
+		eng_og=[]
+		eng_prime=[]
+		for j in test:
+			if ri!=j:
+				rij=calculate_distance(ri,j)
+				if rij<(3*sigma):
+				    eng_og.append(calc_energy(rij))
+		Uri=sum(eng_og)
+		ri_prime=r_prime_calc(ri)
+		for j in test:
+			if j!=ri:
+				rij_prime=calculate_distance(ri_prime,j)
+				if rij_prime<(3*sigma):
+				    eng_prime.append(calc_energy(rij_prime))
+		Uri_prime=sum(eng_prime)
+		delta=Uri_prime-Uri
+		# print(delta)
+		if Uri_prime<Uri:
+			acceptance.append(1)
+			check=1
+		else:
+			P = math.exp(-delta/(R*T))
+			G = (random.random())*2-1
+			if G<P:
+				acceptance.append(1)
+				check=1
+			else:
+				acceptance.append(0)
+				check=0
+		if check==1:
+			index=test.index(ri)
+			test[index]=ri_prime
+			U_run=U_run+delta
+	if (imc%10)==0:
+		alpha_test=calc_acceptance(acceptance)
+		if alpha_test<0.5:
+			alpha=alpha-(0.01*(10**-10))
+			print("Changed alpha to: ",alpha)
+		elif alpha_test>0.5:
+			alpha=alpha+(0.01*(10**-10))
+			print("Changed alpha to: ",alpha)
+	configurations.append(test)
+	print("MC Cycle: ",imc+1," Energy:", U_run," Acceptance:",calc_acceptance(acceptance))
+
+
+print("Total acceptance is:",calc_acceptance(acceptance),"Final alpha value:",alpha)
+
+        
+
+
 
