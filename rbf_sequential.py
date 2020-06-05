@@ -78,7 +78,7 @@ particle_position=create_N_particles(500)
 energy_original=[]
 acceptance=0
 Ui=[]
-mc_cycle=5000
+mc_cycle=5
 x=[]
 y=[]
 #MC METHOD
@@ -95,8 +95,7 @@ for ri in particle_position:
 U=sum(Ui)
 U_run=U
 print("Energy of base fcc configuration is: ", (U/500)/1000,"KJ/mol")
-U_test=0
-U_test_n=0
+
 #Code with neighbours 
 
 
@@ -141,7 +140,7 @@ for imc in range(0,mc_cycle):
 		Uri_prime=(sum(eng_prime))
 		delta=Uri_prime-Uri
 		#if move is accepted then change Urun by adding delta
-		if Uri_prime<U_run:
+		if Uri_prime<Uri:
 			acceptance=acceptance+1
 			index=particle_position.index(ri)
 			particle_position[index]=ri_prime
@@ -156,11 +155,14 @@ for imc in range(0,mc_cycle):
 				U_run+=(delta)
 			#Reject if move is not accepted
 			else:
-				pass
+				pass.
 	#to calculate new alpha based on average acceptance rate 
 	x.append(imc)
 	y.append(U_run/500)
 	alpha_test=acceptance/((imc+1)*500)
+	#to reset Urun for every 20 cycles
+	# if (imc!=0 and imc%20==0):
+	# 	U_run=sum(energy_of_system)
 	if (imc!=0 and imc%10==0):
 		# print("Energy of system(wrt delta)",(U_run/500)/1000,"Energy of system by calculation",(sum(energy_of_system)/500)/1000)
 		if alpha_test<0.5:
@@ -168,13 +170,14 @@ for imc in range(0,mc_cycle):
 			print("Changed alpha to:",alpha,"Energy of system(wrt delta)",(U_run/500)/1000,"Energy of system by calculation",(sum(energy_of_system)/500)/1000)
 		elif alpha_test>0.5:
 			alpha=alpha+(0.01*(10**-10))
-			print("Changed alpha:",alpha)
+			print("Changed alpha:",alpha,"Energy of system(wrt delta)",(U_run/500)/1000,"Energy of system by calculation",(sum(energy_of_system)/500)/1000)
 	print("MC Cycle:",imc)
 	print("\tTotal Energy (Average for ith particle):",(U_run/1000)/500,"KJ/mol")
+	print(len(neighbours[0]))
 end=time.time()
 print("\nTotal acceptance is:",alpha_test,"Final alpha value:",alpha,"Time taken: ",end-start)
 #To plot energy vs mc cycle 
-# plt.plot(x,y)
-# plt.show()
+plt.plot(x,y)
+plt.show()
 
 
